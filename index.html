@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C# Oyun Atölyesi — Sıfırdan Yılan Oyunu</title>
+<meta name="description" content="C# ile sıfırdan oyun yazmayı öğren: kodun tamamı, satır satır mantığı, canlı oyun döngüsü laboratuvarı ve indirilebilir kaynak dosyalar. Konsol tabanlı Yılan oyunu üzerinden oyun programlamanın temelleri.">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b1118'/%3E%3Cpath d='M8 11h8v4h-4v4h8v4H8' fill='none' stroke='%234ade80' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div id="progress-rail"><div id="progress-bar"></div></div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark">C#</span>
+      <span>oyun atölyesi</span>
+    </a>
+    <nav class="nav">
+      <a href="#nedir">Nasıl çalışır</a>
+      <a href="#yol-haritasi">Yol haritası</a>
+      <a href="#lab">Laboratuvar</a>
+      <a href="#bolumler">Bölümler</a>
+      <a href="#indir">Kodu indir</a>
+      <a href="#bolum-1" class="header-cta">Başla →</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="badge"><span class="dot"></span> C# · .NET 8 · Sıfır bağımlılık</span>
+        <h1>C# ile ilk oyununu <span class="grad">adım adım</span> yaz.</h1>
+        <p class="hero-lead">
+          Klasik <strong>Yılan</strong> oyununu sıfırdan, konsolda yazıyoruz. Her bölümde önce
+          kodu görüyorsun, sonra o kodun <strong>neden</strong> öyle yazıldığını madde madde
+          okuyorsun. Sonunda ise çalışan bir oyunun ve oyun programlamanın temel mantığının
+          sahibi oluyorsun.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#bolum-1">1. bölümden başla</a>
+          <a class="btn btn-ghost" href="#lab">Canlı laboratuvarı dene</a>
+        </div>
+        <div class="hero-stats">
+          <div><b>9</b>bölüm</div>
+          <div><b>280</b>satır kod</div>
+          <div><b>0</b>harici paket</div>
+          <div><b>18/18</b>mantık testi geçti</div>
+        </div>
+      </div>
+
+      <div class="terminal" aria-hidden="true">
+        <div class="terminal-bar">
+          <span class="lamp r"></span><span class="lamp y"></span><span class="lamp g"></span>
+          <span class="terminal-title">dotnet run — YilanOyunu</span>
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-hud"><span>Skor: <span class="k">120</span></span><span>En iyi: <span class="k">240</span></span><span>Hız: <span class="k">9</span></span></div>
+<span class="wall">###########################</span>
+<span class="wall">#</span>                         <span class="wall">#</span>
+<span class="wall">#</span>    <span class="head">@</span><span>ooo</span>                 <span class="wall">#</span>
+<span class="wall">#</span>       <span>o</span>                 <span class="wall">#</span>
+<span class="wall">#</span>       <span>o</span>        <span class="food">*</span>        <span class="wall">#</span>
+<span class="wall">#</span>                         <span class="wall">#</span>
+<span class="wall">#</span>                         <span class="wall">#</span>
+<span class="wall">#</span>                         <span class="wall">#</span>
+<span class="wall">#</span>                         <span class="wall">#</span>
+<span class="wall">#</span>                         <span class="wall">#</span>
+<span class="wall">###########################</span>
+          <span class="dim">  Yön: ok tuşları / WASD</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ZİHİNSEL MODEL ================= -->
+  <section id="nedir">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Zihinsel model</span>
+        <h2>Bir oyun aslında dört parçadan oluşur</h2>
+        <p>
+          Oyun programlama, sihir değil. Ekranda gördüğün her şey; bir veri, bir döngü ve
+          birkaç kuralın sonucu. Yılan oyunu bu dört parçayı en saf hâliyle gösterdiği için
+          öğrenmek için mükemmel bir başlangıç.
+        </p>
+      </div>
+      <div class="grid-4">
+        <div class="card">
+          <span class="num">01</span>
+          <h3>Izgara (grid)</h3>
+          <p>Ekran, satır ve sütunlardan oluşan bir tablo. Her şey <em>x, y</em> koordinatına sahip bir hücrede durur.</p>
+        </div>
+        <div class="card">
+          <span class="num">02</span>
+          <h3>Durum (state)</h3>
+          <p>Yılanın parçaları, yönü, yemin yeri, skor… Oyunun "şu anki hâli" sadece birkaç değişkende saklı.</p>
+        </div>
+        <div class="card">
+          <span class="num">03</span>
+          <h3>Döngü (game loop)</h3>
+          <p>Saniyede birkaç kez tekrarlanan döngü: <strong>girdiyi oku → kuralı uygula → ekranı çiz.</strong></p>
+        </div>
+        <div class="card">
+          <span class="num">04</span>
+          <h3>Kurallar (logic)</h3>
+          <p>Duvara çarparsan biter, yemi yersen uzarsın. Oyunun "hissi" bu kuralların toplamıdır.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= YOL HARİTASI ================= -->
+  <section id="yol-haritasi">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Yol haritası</span>
+        <h2>Nereden başlayıp nereye gidiyoruz?</h2>
+        <p>Bölümler birbirini tamamlar: her biri önceki kodun üstüne bir tuğla daha koyar. Görevleri tamamladıkça soldaki çubuk dolar.</p>
+      </div>
+      <div class="roadmap">
+        <a class="step-card" href="#bolum-1" data-step="1">
+          <span class="step-no">1</span>
+          <span class="step-body"><strong>Kurulum</strong><span>SDK, proje oluşturma, ilk çalıştırma</span></span>
+        </a>
+        <a class="step-card" href="#bolum-2" data-step="2">
+          <span class="step-no">2</span>
+          <span class="step-body"><strong>Oyun alanı ve koordinatlar</strong><span>Izgarayı ve <code>Konum</code> yapısını kur</span></span>
+        </a>
+        <a class="step-card" href="#bolum-3" data-step="3">
+          <span class="step-no">3</span>
+          <span class="step-body"><strong>Durumu tanımla</strong><span>Yılan, yön, yem, skor değişkenleri</span></span>
+        </a>
+        <a class="step-card" href="#bolum-4" data-step="4">
+          <span class="step-no">4</span>
+          <span class="step-body"><strong>Oyun döngüsü</strong><span>Sabit hızda güncelleme, titremeyen akış</span></span>
+        </a>
+        <a class="step-card" href="#bolum-5" data-step="5">
+          <span class="step-no">5</span>
+          <span class="step-body"><strong>Girdi ve yön</strong><span>Tuş okuma ve 180° dönüş yasağı</span></span>
+        </a>
+        <a class="step-card" href="#bolum-6" data-step="6">
+          <span class="step-no">6</span>
+          <span class="step-body"><strong>Bir adım: hareket + çarpışma</strong><span>Oyunun kalbi olan fonksiyon</span></span>
+        </a>
+        <a class="step-card" href="#bolum-7" data-step="7">
+          <span class="step-no">7</span>
+          <span class="step-body"><strong>Yem, büyüme, skor</strong><span>Rastgele yem ve hız artışı</span></span>
+        </a>
+        <a class="step-card" href="#bolum-8" data-step="8">
+          <span class="step-no">8</span>
+          <span class="step-body"><strong>Çizim</strong><span>Titremeyen ekran, karakter haritası</span></span>
+        </a>
+        <a class="step-card" href="#bolum-9" data-step="9">
+          <span class="step-no">9</span>
+          <span class="step-body"><strong>Oyun sonu ve yeniden başlatma</strong><span>Durum makinesi ve temiz çıkış</span></span>
+        </a>
+      </div>
+      <p class="lab-hint" id="task-progress">0 / 11 görev tamamlandı</p>
+    </div>
+  </section>
+
+  <!-- ================= LABORATUVAR ================= -->
+  <section id="lab">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Canlı laboratuvar</span>
+        <h2>Kodu yazmadan önce mantığı gör</h2>
+        <p>
+          Aşağıdaki alan, C# kodunun <strong>birebir aynı kurallarıyla</strong> çalışan bir
+          simülasyon. "Tek adım" düğmesiyle oyun döngüsünün her turunda ne olduğunu izle:
+          kafa bir hücre ilerler, kuyruk silinir, yem yenirse uzunluk artar.
+        </p>
+      </div>
+
+      <div class="lab">
+        <div>
+          <div class="lab-stage">
+            <div id="lab-grid" aria-label="Yılan oyunu simülasyon alanı"></div>
+            <div class="lab-overlay" id="lab-overlay">
+              <div>
+                <h4>Oyun bitti</h4>
+                <p id="lab-overlay-text">Duvara çarptın.</p>
+                <button class="btn btn-primary" id="lab-restart" type="button">Yeniden dene</button>
+              </div>
+            </div>
+          </div>
+          <div class="lab-controls">
+            <button class="btn btn-primary" id="lab-toggle" type="button">▶ Başlat</button>
+            <button class="btn btn-ghost" id="lab-step" type="button">Tek adım</button>
+            <button class="btn btn-ghost" id="lab-reset" type="button">Sıfırla</button>
+            <div class="speed-row">
+              <span>hız</span>
+              <input type="range" id="lab-speed" min="1" max="12" value="5" step="1">
+              <span id="lab-speed-val">5</span>
+            </div>
+          </div>
+          <p class="lab-hint">İpucu: alan seçiliyken ok tuşları veya WASD ile yön verebilirsin.</p>
+        </div>
+
+        <aside class="lab-side">
+          <h3>Oyunun durumu (state)</h3>
+          <table class="state-table">
+            <tr><th>Yön</th><td id="st-dir">→</td></tr>
+            <tr><th>Kafa</th><td id="st-head">(14, 8)</td></tr>
+            <tr><th>Uzunluk</th><td id="st-len">3</td></tr>
+            <tr><th>Skor</th><td id="st-score">0</td></tr>
+            <tr><th>Adım</th><td id="st-steps">0</td></tr>
+            <tr><th>Durum</th><td id="st-state">hazır</td></tr>
+          </table>
+          <div class="lab-log" id="lab-log">
+            <div>Hazır. Başlat ya da tek adım at.</div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BÖLÜMLER ================= -->
+  <section id="bolumler">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Dersler</span>
+        <h2>Dokuz bölümde Yılan</h2>
+        <p>
+          Kod bloklarının başlığındaki dosya adı, parçanın hangi fonksiyona ait olduğunu
+          gösterir. Kopyala düğmesiyle doğrudan projene aktarabilirsin.
+        </p>
+      </div>
+
+      <!-- ============ BÖLÜM 1 ============ -->
+      <article class="chapter" id="bolum-1">
+        <div class="chapter-head">
+          <div class="chapter-num">01</div>
+          <div class="chapter-title-wrap">
+            <h3>Kurulum: ilk satırı çalıştır</h3>
+            <div class="chapter-meta">
+              <span>~5 dakika</span><span class="tag">başlangıç</span><span>terminal</span>
+            </div>
+          </div>
+        </div>
+        <div class="chapter-body">
+          <p>
+            C# için tek ihtiyacımız <strong>.NET SDK</strong>. Kurduktan sonra <code>dotnet</code>
+            komutu hem proje oluşturur hem derler hem çalıştırır. Konsol uygulaması seçmemizin
+            sebebi basitlik: ekran kartı, pencere, oyun motoru yok. Sadece kod ve mantık.
+          </p>
+
+          <div class="code-panel">
+            <div class="code-head"><span class="lang">TERMINAL</span><span class="file">proje oluştur</span></div>
+            <pre><code class="language-bash">dotnet --version              # SDK kurulu mu?
+dotnet new console -o YilanOyunu
+cd YilanOyunu
+dotnet run                    # "Hello, World!" yazmalı</code></pre>
+          </div>
+
+          <div class="code-panel">
+            <div class="code-head"><span class="lang">DOSYA</span><span class="file">YilanOyunu/ klasörü</span></div>
+            <pre><code class="language-text">YilanOyunu/
+├── YilanOyunu.csproj   ← proje ayarları (hedef .NET sürümü)
+├── Program.cs          ← tüm kodumuz buraya
+└── bin/  obj/          ← derleme çıktıları (elle dokunma)</code></pre>
+          </div>
+
+          <div class="logic">
+            <h4>Mantığı</h4>
+            <ol>
+              <li><b>Proje = bir klasör + bir .csproj dosyası.</b> <code>dotnet new console</code> ikisini de hazırlar, sıfırdan dosya yazmana gerek yok.</li>
+              <li><b>Program.cs içindeki <code>Main</code> metodu giriş noktasıdır.</b> Program çalışınca ilk orası çalışır; oyunumuzun tamamı bu dosyada olacak.</li>
+              <li><b>Derleme ayrı, çalıştırma ayrı.</b> <code>dotnet build</code> hataları gösterir, <code>dotnet run</code> gerekirse derleyip çalıştırır.</li>
+            </ol>
+          </div>
+
+          <div class="callout warn">
+            <span class="ico">⚠</span>
+            <p><strong>Sık yapılan hata:</strong> <code>'dotnet' is not recognized</code> hatası alıyorsan SDK ya kurulu değildir ya da terminal, kurulum sonrası açılmamıştır. Terminali kapatıp yeniden aç.</p>
+          </div>
+
+          <div class="task">
+            <input type="checkbox" id="t1" class="task-check" data-chapter="1">
+            <label for="t1"><b>Görev 01</b>Projeyi oluştur, <code>dotnet run</code> ile çalıştır ve terminalde <em>Hello, World!</em> yazısını gör.</label>
+          </div>
+        </div>
+      </article>
+
+      <!-- ============ BÖLÜM 2 ============ -->
+      <article class="chapter" id="bolum-2">
+        <div class="chapter-head">
+          <div class="chapter-num">02</div>
+          <div class="chapter-title-wrap">
+            <h3>Oyun alanını ve koordinatları kur</h3>
+            <div class="chapter-meta"><span>~10 dakika</span><span class="tag">veri yapısı</span><span>struct</span></div>
+          </div>
+        </div>
+        <div class="chapter-body">
+          <p>
+            Oyundaki her şey bir hücrede durur: yılanın kafası, gövdesi, yem, duvarlar.
+            Bir hücreyi tarif etmek için iki sayı yeter: <strong>sütun (X)</strong> ve
+            <strong>satır (Y)</strong>. Bu ikisini her yerde ayrı ayrı taşımak yerine tek bir
+            <code>Konum</code> tipinde topluyoruz. Aşağıdaki satırların hepsi <code>class Program</code>
+            içine yazılır.
+          </p>
+
+          <div class="code-panel">
+            <div class="code-head"><span class="lang">C#</span><span class="file">Program.cs — ayarlar</span></div>
+            <pre><code class="language-csharp">using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+using System.Threading;
+
+const int Genislik = 30;   // kaç sütun
+const int Yukseklik = 20;  // kaç satır
+
+// Ekranda kullanacağımız semboller
+const char Bos = ' ';
+const char Duvar = '#';
+const char Kafa = '@';
+const char Govde = 'o';
+const char YemKarakter = '*';
+
+struct Konum
+{
+    public int X;
+    public int Y;
+
+    public Konum(int x, int y)
+    {
+        X = x;
+        Y = y;
+    }
+}</code></pre>
+          </div>
+
+          <div class="logic">
+            <h4>Mantığı</h4>
+            <ol>
+              <li><b><code>const</code> = değişmeyecek değer.</b> Alan boyutu oyun sırasında değişmediği için derleyiciye "bu sabit" diyoruz; kodun her yerinde aynı sayıyı tekrar yazmıyoruz.</li>
+              <li><b><code>struct</code> = küçük veri demeti.</b> Sadece iki sayı tuttuğu için sınıf (class) yerine struct kullanıyoruz: bellekte daha hafif, kopyalanması ucuz.</li>
+              <li><b>X sağa, Y aşağı artar.</b> Bu bir ekran koordinatıdır. Matematikte Y yukarı gider; burada tam tersi. Yılanı "yukarı" göndermek için Y'yi <em>azaltacağız</em>.</li>
+              <li><b>Duvarlar kenarda.</b> 0 ve son indeks duvarlara ayrıldığı için oynanabilir alan <code>1..Genislik-2</code> aralığıdır.</li>
+              <li><b>Semboller de sabit.</b> Ekranda göreceğin <code>#</code>, <code>@</code>, <code>o</code>, <code>*</code> karakterleri tek yerde tanımlı; görüntüyü değiştirmek istediğinde tek satırı düzeltmen yeter.</li>
+            </ol>
+          </div>
+
+          <div class="callout tip">
+            <span class="ico">◆</span>
+            <p><strong>İpucu:</strong> Koordinatları <em>ekranda gördüğün gibi</em> düşün: sol üst köşe <code>(0, 0)</code>, sağa gidince X büyür, aşağı inince Y büyür. Kalan her şey bu iki kuraldan çıkar.</p>
+          </div>
+
+          <div class="task">
+            <input type="checkbox" id="t2" class="task-check" data-chapter="2">
+            <label for="t2"><b>Görev 02</b>Alanı <code>40 x 24</code> yap ve bölüm 8'deki çizim kodunu çalıştırınca alanın büyüdüğünü doğrula.</label>
+          </div>
+        </div>
+      </article>
+
+      <!-- ============ BÖLÜM 3 ============ -->
+      <article class="chapter" id="bolum-3">
+        <div class="chapter-head">
+          <div class="chapter-num">03</div>
+          <div class="chapter-title-wrap">
+            <h3>Oyunun durumunu tanımla</h3>
+            <div class="chapter-meta"><span>~10 dakika</span><span class="tag">state</span><span>liste</span></div>
+          </div>
+        </div>
+        <div class="chapter-body">
+          <p>
+            Ekranda gördüğün yılan aslında bir <strong>liste</strong>. Listenin 0. elemanı kafa,
+            son elemanı kuyruk. Yılan her adımda "kafaya yeni bir hücre ekle, kuyruktan bir hücre
+            sil" mantığıyla ilerler — tıpkı bir tren gibi.
+          </p>
+
+          <div class="code-panel">
+            <div class="code-head"><span class="lang">C#</span><span class="file">Program.cs — durum değişkenleri</span></div>
+            <pre><code class="language-csharp">static readonly Random rastgele = new Random();
+
+// Yılan: 0. eleman kafa, son eleman kuyruk.
+static readonly List&lt;Konum&gt; yilan = new List&lt;Konum&gt;();
+static Konum yem;
+static Konum yon = new Konum(1, 0);          // şu anki yön (sağ)
+static Konum bekleyenYon = new Konum(1, 0);  // tuştan gelen, sıradaki adımda uygulanacak
+
+static int skor;
+static int enYuksekSkor;
+static int hiz = 8;        // saniyede kaç adım
+static bool oyunBitti;</code></pre>
+          </div>
+
+          <div class="logic">
+            <h4>Mantığı</h4>
+            <ol>
+              <li><b>Liste sırası anlam taşır.</b> Kafa her zaman <code>yilan[0]</code>. Yön ve çarpışma hesaplarında hep bu elemandan başlıyoruz.</li>
+              <li><b>Yön bir vektördür.</b> <code>(1, 0)</code> sağ, <code>(-1, 0)</code> sol, <code>(0, -1)</code> yukarı, <code>(0, 1)</code> aşağı. Yeni konum = eski konum + yön.</li>
+              <li><b><code>static</code> kullanıyoruz.</b> Tek bir oyun olduğu için bu değişkenlerin sınıfın kendisine ait olması yeterli; nesne oluşturma derdinden kurtuluyoruz. Oyunu büyütürsen bunları bir <code>Oyun</code> sınıfının alanlarına taşımak doğru adım olur.</li>
+              <li><b><code>bekleyenYon</code> neden ayrı?</b> Tuş her basıldığında yönü anında değiştirseydik, iki adım arasında basılan tuşlar yılanı kendi üstüne kıvırabilirdi. Tuşu <em>biriktirip</em> adım anında uyguluyoruz.</li>
+            </ol>
+          </div>
+
+          <div class="callout warn">
+            <span class="ico">⚠</span>
+            <p><strong>Sık yapılan hata:</strong> Yılanı <code>Konum[]</code> dizisiyle tutup sabit boyut varsaymak. Yılan büyüdüğü için boyutu değişen bir yapı gerekir — bu yüzden <code>List&lt;Konum&gt;</code>.</p>
+          </div>
+
+          <div class="task">
+            <input type="checkbox" id="t3" class="task-check" data-chapter="3">
+            <label for="t3"><b>Görev 03</b>Bölüm 9'da yazacağımız <code>OyunuBaslat</code> içinde yılana 3 değil <strong>5</strong> parça ekle ve başlangıç uzunluğunu gözlemle.</label>
+          </div>
+        </div>
+      </article>
+
+      <!-- ============ BÖLÜM 4 ============ -->
+      <article class="chapter" id="bolum-4">
+        <div class="chapter-head">
+          <div class="chapter-num">04</div>
+          <div class="chapter-title-wrap">
+            <h3>Oyun döngüsü: kalp atışı</h3>
+            <div class="chapter-meta"><span>~12 dakika</span><span class="tag">game loop</span><span>Stopwatch</span></div>
+          </div>
+        </div>
+        <div class="chapter-body">
+          <p>
+            Oyunun kalbi tek bir döngüdür: <strong>girdiyi oku → kuralları uygula → ekranı çiz</strong>.
+            Bu üç işi saniyede <code>hiz</code> kadar tekrarlıyoruz. Yılanın "kayarak" değil de
+            adım adım ilerlemesinin sebebi bu: her turda tam bir hücre hareket var.
+          </p>
+
+          <div class="code-panel">
+            <div class="code-head"><span class="lang">C#</span><span class="file">Program.cs — OyunDongusu()</span></div>
+            <pre><code class="language-csharp">var saat = Stopwatch.StartNew();
+double sonAdim = 0;
+
+while (!oyunBitti)
+{
+    double simdi = saat.Elapsed.TotalSeconds;
+
+    // Adım zamanı geldiyse oyunu güncelle.
+    if (simdi - sonAdim &gt;= 1.0 / hiz)
+    {
+        sonAdim = simdi;
+        YonOku();   // 1) girdi
+        Adim();     // 2) kural
+        Ciz();      // 3) ekran
+    }
+
+    // Kısa bekleme: işlemciyi yormadan döngüyü canlı tut.
+    Thread.Sleep(5);
+}</code></pre>
+          </div>
+
+          <div class="logic">
+            <h4>Mantığı</h4>
+            <ol>
+              <li><b><code>1.0 / hiz</code> = iki adım arası süre.</b> <code>hiz = 8</code> ise her adım arası 0,125 saniye. Hız artarsa bu süre kısalır, oyun hızlanır.</li>
+              <li><b>Neden <code>Thread.Sleep(125)</code> değil?</b> Uyursak tuşları da kaçırırız: 125 ms boyunca basılan ok tuşu işlenmez. Kısa kısa (5 ms) uyuyup her turda saati kontrol etmek, hem işlemciyi yormaz hem girdiyi kaçırmaz.</li>
+              <li><b>Neden <code>Stopwatch</code>?</b> Gerçek zamanı ölçer; kare atlamalarını (bilgisayar yavaşlarsa) tolere eder. Sabit sayıda uykuyla değil, <em>gerçekten geçen süreyle</em> karar veriyoruz.</li>
+              <li><b>Sıra önemli:</b> önce oku, sonra güncelle, en son çiz. Ters sırada çizersen ekranda hep bir adım geriden gelen bir yılan görürsün.</li>
+            </ol>
+          </div>
+
+          <div class="callout tip">
+            <span class="ico">◆</span>
+            <p><strong>İpucu:</strong> "Hız" hissi sadece bu döngüden gelir. Aynı kurallarla <code>hiz = 3</code> yavaş ve düşündürücü, <code>hiz = 20</code> ise refleks oyunu olur.</p>
+          </div>
+
+          <div class="task">
+            <input type="checkbox" id="t4" class="task-check" data-chapter="4">
+            <label for="t4"><b>Görev 04</b><code>hiz</code> değerini 4 yap, oyunu çalıştır ve aynı yılanın ne kadar yavaşladığını hisset.</label>
+          </div>
+        </div>
+      </article>
+
+      <!-- ============ BÖLÜM 5 ============ -->
+      <article class="chapter" id="bolum-5">
+        <div class="chapter-head">
+          <div class="chapter-num">05</div>
+          <div class="chapter-title-wrap">
+            <h3>Girdi: tuşları beklemeden okumak</h3>
+            <div class="chapter-meta"><span>~12 dakika</span><span class="tag">input</span><span>vektör</span></div>
+          </div>
+        </div>
+        <div class="chapter-body">
+          <p>
+            Konsolda <code>Console.ReadKey()</code> çağırırsan program tuş gelene kadar <em>durur</em>.
+            Oyun saniyede 8 kez akmak zorunda olduğu için önce "bekleyen tuş var mı?" diye sorup
+            sadece varsa okuyoruz. Buna <strong>engellemeyen (non-blocking) girdi</strong> denir.
+          </p>
+
+          <div class="code-panel">
+            <div class="code-head"><span class="lang">C#</span><span class="file">Program.cs — YonOku()</span></div>
+            <pre><code class="language-csharp">while (Console.KeyAvailable)
+{
+    ConsoleKeyInfo tus = Console.ReadKey(true);  // true: tuşu ekrana basma
+    Konum istenen = yon;
+
+    switch (tus.Key)
+    {
+        case ConsoleKey.UpArrow:
+        case ConsoleKey.W:
+            istenen = new Konum(0, -1);
+            break;
+        case ConsoleKey.DownArrow:
+        case ConsoleKey.S:
+            istenen = new Konum(0, 1);
+            break;
+        case ConsoleKey.LeftArrow:
+        case ConsoleKey.A:
+            istenen = new Konum(-1, 0);
+            break;
+        case ConsoleKey.RightArrow:
+        case ConsoleKey.D:
+            istenen = new Konum(1, 0);
+            break;
+    }
+
+    // 180 derece dönüşü engelle: zıt yönlerin toplamı (0, 0) eder.
+    if (istenen.X + yon.X != 0 || istenen.Y + yon.Y != 0)
+    {
+        bekleyenYon = istenen;
+    }
+}</code></pre>
+          </div>
+
+          <div class="logic">
+            <h4>Mantığı</h4>
+            <ol>
+              <li><b><code>KeyAvailable</code></b> "şu an okunmayı bekleyen tuş var mı?" sorusudur. <code>while</code> ile tüm bekleyen tuşları tüketiyoruz; aksi hâlde tuş kuyruğu birikir.</li>
+              <li><b><code>ReadKey(true)</code></b> tuşu alır ama ekrana yazmaz. <code>false</code> versen her tuşta ekranda çöp karakterler belirir.</li>
+              <li><b>Yön = birim vektör.</b> Sadece yönü değiştiriyoruz, hızı değil. <code>(0, -1)</code> yukarı demek çünkü ekranda Y aşağı artıyor.</li>
+              <li><b>Neden anında <code>yon</code> değil de <code>bekleyenYon</code>?</b> İki adım arasında iki tuşa basarsan (örneğin sağ→yukarı→sol), anında uygulama yılanı kendi üstüne sokar. Biriktirip adımda uygulamak bu kazayı engeller.</li>
+              <li><b>180° kuralı:</b> zıt yönlerin toplamı <code>(0,0)</code> eder. Sağa giderken sol <em>reddedilir</em>; aşağı/yukarı ise kabul edilir.</li>
+            </ol>
+          </div>
+
+          <div class="callout warn">
+            <span class="ico">⚠</span>
+            <p><strong>Sık yapılan hata:</strong> <code>Console.KeyAvailable</code> yerine <code>Console.ReadKey()</code> kullanmak. Oyun, tuşa basana kadar donar; yılan durur ama döngü de durduğu için hız ayarı hiç çalışmaz.</p>
+          </div>
+
+          <div class="task">
+            <input type="checkbox" id="t5" class="task-check" data-chapter="5">
+            <label for="t5"><b>Görev 05</b>Tuş takımını <code>I / J / K / L</code> olacak şekilde değiştir ve oyunu bu tuşlarla oyna.</label>
+          </div>
+        </div>
+      </article>
+
+      <!-- ============ BÖLÜM 6 ============ -->
+      <article class="chapter" id="bolum-6">
+        <div class="chapter-head">
+          <div class="chapter-num">06</div>
+          <div class="chapter-title-wrap">
+            <h3>Bir adım: hareket ve çarpışma</h3>
+            <div class="chapter-meta"><span>~18 dakika</span><span class="tag">oyunun kalbi</span><span>çarpışma</span></div>
+          </div>
+        </div>
+        <div class="chapter-body">
+          <p>
+            İşte oyunun tamamı burada. Bu fonksiyon çağrıldığında yılan tam bir hücre ilerler ve
+            tüm kurallar sırayla uygulanır. Dikkat et: <strong>sıra</strong>, kuralların kendisi
+            kadar önemli.
+          </p>
+
+          <div class="code-panel">
+            <div class="code-head"><span class="lang">C#</span><span class="file">Program.cs — Adim()</span></div>
+            <pre><code class="language-csharp">static void Adim()
+{
+    yon = bekleyenYon;
+
+    Konum kafa = yilan[0];
+    Konum yeniKafa = new Konum(kafa.X + yon.X, kafa.Y + yon.Y);
+
+    // 1) Duvara çarptı mı?
+    if (yeniKafa.X &lt;= 0 || yeniKafa.X &gt;= Genislik - 1 ||
+        yeniKafa.Y &lt;= 0 || yeniKafa.Y &gt;= Yukseklik - 1)
+    {
+        oyunBitti = true;
+        return;
+    }
+
+    // 2) Kendine çarptı mı? Son parçayı saymıyoruz:
+    //    yem yemediysek o parça bu adımda kaybolacak.
+    for (int i = 0; i &lt; yilan.Count - 1; i++)
+    {
+        if (yilan[i].X == yeniKafa.X &amp;&amp; yilan[i].Y == yeniKafa.Y)
+        {
+            oyunBitti = true;
+            return;
+        }
+    }
+
+    // 3) Yeni kafayı başa ekle.
+    yilan.Insert(0, yeniKafa);
+
+    // 4) Yem yendi mi?
+    if (yeniKafa.X == yem.X &amp;&amp; yeniKafa.Y == yem.Y)
+    {
+        skor += 10;
+        if (skor &gt; enYuksekSkor)
+        {
+            enYuksekSkor = skor;
+        }
+
+        if (skor % 50 == 0 &amp;&amp; hiz &lt; 20)
+        {
+            hiz++;
+        }
+
+        YemUret();
+        // Kuyruğu silmiyoruz: yılan bir kare uzar.
+    }
+    else
+    {
+        // Yem yoksa kuyruğu sil: boy aynı kalır, yılan kayar.
+        yilan.RemoveAt(yilan.Count - 1);
+    }
+}</code></pre>
+          </div>
+
+          <div class="logic">
+            <h4>Mantığı</h4>
+            <ol>
+              <li><b>Önce hayali kafayı hesapla.</b> Yılanı henüz değiştirmeden "bir sonraki hücre neresi?" sorusunu yanıtlıyoruz: <code>kafa + yön</code>.</li>
+              <li><b>Duvar = oyun sonu.</b> Oynanabilir alan 1 ile <code>Genislik-2</code> arası. Dışına çıkan kafa duvara çarpmış demektir; <code>return</code> ile fonksiyondan çıkıp hiçbir şeyi değiştirmiyoruz.</li>
+              <li><b>Kendine çarpma için son parça hariç.</b> Yem yemediysen kuyruk bu adımda silinecek; dolayısıyla kuyruğun <em>eski</em> yerine girmek serbesttir. Kuyruğu da sayarsan oyun haksız yere biter.</li>
+              <li><b>Hareket = başa ekle + sondan sil.</b> Bu iki işlem birlikte yılanı kaydırır. Yem yenmediyse son eleman silinir, uzunluk sabit kalır.</li>
+              <li><b>Büyüme = kuyruğu silmemek.</b> Yem yendiğinde sadece <code>yilan.Add</code> yapmıyoruz; kuyruğu <em>silmiyoruz</em>. Böylece yılan bir hücre uzar ve yeni kafa yemin olduğu yerde kalır.</li>
+            </ol>
+          </div>
+
+          <div class="callout warn">
+            <span class="ico">⚠</span>
+            <p><strong>Sık yapılan hata:</strong> Yeni kafayı listeye ekledikten <em>sonra</em> kendine çarpma kontrolü yapmak. O anda yeni kafa zaten listede olduğu için yılan her adımda kendine çarpmış gibi görünür. Kontrol, ekleme yapılmadan <strong>önce</strong> olmalı.</p>
+          </div>
+
+          <div class="task">
+            <input type="checkbox" id="t6a" class="task-check" data-chapter="6">
+            <label for="t6a"><b>Görev 06</b>Duvara çarpmak yerine diğer taraftan girmeyi (wrap-around) dene: duvar kontrolünü kaldır, adım sonunda koordinatlar sınırı aşarsa başa döndür.</label>
+          </div>
+          <div class="task">
+            <input type="checkbox" id="t6b" class="task-check" data-chapter="6">
+            <label for="t6b"><b>Görev 07</b>Kendine çarpma döngüsündeki <code>yilan.Count - 1</code> ifadesini <code>yilan.Count</code> yap ve kuyruğa girdiğinde oyunun haksız yere bittiğini gör.</label>
+          </div>
+        </div>
+      </article>
+
+      <!-- ============ BÖLÜM 7 ============ -->
+      <article class="chapter" id="bolum-7">
+        <div class="chapter-head">
+          <div class="chapter-num">07</div>
+          <div class="chapter-title-wrap">
+            <h3>Yem, skor ve hızlanma</h3>
+            <div class="chapter-meta"><span>~12 dakika</span><span class="tag">rastgelelik</span><span>skor</span></div>
+          </div>
+        </div>
+        <div class="chapter-body">
+          <p>
+            Yem, oyunun tek rastgele öğesi. Ama "rastgele" demek "kuralsız" değil: yem yılanın
+            üstüne doğmamalı, duvarın içinde kalmamalı ve oyun sırasında yer değiştirmemeli.
+          </p>
+
+          <div class="code-panel">
+            <div class="code-head"><span class="lang">C#</span><span class="file">Program.cs — YemUret()</span></div>
+            <pre><code class="language-csharp">static void YemUret()
+{
+    do
+    {
+        yem = new Konum(rastgele.Next(1, Genislik - 1),
+                        rastgele.Next(1, Yukseklik - 1));
+    }
+    while (yilan.Exists(parca =&gt; parca.X == yem.X &amp;&amp; parca.Y == yem.Y));
+}</code></pre>
+          </div>
+
+          <div class="logic">
+            <h4>Mantığı</h4>
+            <ol>
+              <li><b><code>Next(1, Genislik - 1)</code></b> üst sınırı <em>hariç</em> tutar. Yani 1 ile 28 arasında üretir; duvarlar (0 ve 29) hiç seçilmez.</li>
+              <li><b><code>do / while</code> = "geçerli olana kadar dene".</b> Önce rastgele bir yer seçiyoruz, yılanın üstündeyse baştan seçiyoruz. Bu yüzden şartı <code>do</code>'nun sonunda kontrol ediyoruz.</li>
+              <li><b><code>Exists</code> + lambda</b> listedeki her parçayı tek tek gezer. <code>parca =&gt; ...</code> şeklindeki kısa fonksiyonlara lambda denir; "şu şartı sağlayan eleman var mı?" demenin kısa yolu.</li>
+              <li><b>Skor ve hız:</b> her yem 10 puan. Her 50 puanda <code>hiz</code> bir artar ama 20'de durur — yoksa oyun bir süre sonra oynanamaz hâle gelir.</li>
+            </ol>
+          </div>
+
+          <div class="callout warn">
+            <span class="ico">⚠</span>
+            <p><strong>Sık yapılan hata:</strong> <code>new Random()</code>'ı döngünün veya fonksiyonun <em>içinde</em> oluşturmak. Aynı milisaniyede kurulan Random'lar aynı tohumu kullanır ve hep aynı sayıyı üretir; yem hep aynı yere düşer. Bir kez oluştur, her yerde aynı nesneyi kullan.</p>
+          </div>
+
+          <div class="task">
+            <input type="checkbox" id="t7a" class="task-check" data-chapter="7">
+            <label for="t7a"><b>Görev 08</b>Her yemi 20 puan yap ve hız artışını 50 yerine her 40 puanda tetikle.</label>
+          </div>
+          <div class="task">
+            <input type="checkbox" id="t7b" class="task-check" data-chapter="7">
+            <label for="t7b"><b>Görev 09</b>Yem üretimindeki <code>yilan.Exists</code> kontrolünü geçici olarak kaldır; yem yılanın üstüne düşünce ne olduğunu gözlemle.</label>
+          </div>
+        </div>
+      </article>
+
+      <!-- ============ BÖLÜM 8 ============ -->
+      <article class="chapter" id="bolum-8">
+        <div class="chapter-head">
+          <div class="chapter-num">08</div>
+          <div class="chapter-title-wrap">
+            <h3>Çizim: titremeyen ekran</h3>
+            <div class="chapter-meta"><span>~15 dakika</span><span class="tag">render</span><span>StringBuilder</span></div>
+          </div>
+        </div>
+        <div class="chapter-body">
+          <p>
+            İlk denemelerde herkes <code>Console.Clear()</code> çağırıp yeniden çizer. Sonuç:
+            göz yoran bir titreme. Çözüm basit — ekranı temizlemek yerine <strong>tek seferde</strong>
+            yeni kareyi yazmak.
+          </p>
+
+          <div class="code-panel">
+            <div class="code-head"><span class="lang">C#</span><span class="file">Program.cs — Ciz()</span></div>
+            <pre><code class="language-csharp">static void Ciz()
+{
+    var ekran = new StringBuilder();
+
+    ekran.Append("  Skor: ").Append(skor)
+         .Append("    En iyi: ").Append(enYuksekSkor)
+         .Append("    Hız: ").Append(hiz)
+         .Append(Environment.NewLine);
+
+    for (int y = 0; y &lt; Yukseklik; y++)
+    {
+        for (int x = 0; x &lt; Genislik; x++)
+        {
+            char karakter = Bos;
+
+            if (x == 0 || x == Genislik - 1 || y == 0 || y == Yukseklik - 1)
+            {
+                karakter = Duvar;
+            }
+            else if (x == yem.X &amp;&amp; y == yem.Y)
+            {
+                karakter = YemKarakter;
+            }
+            else
+            {
+                for (int i = 0; i &lt; yilan.Count; i++)
+                {
+                    if (yilan[i].X == x &amp;&amp; yilan[i].Y == y)
+                    {
+                        karakter = (i == 0) ? Kafa : Govde;
+                        break;
+                    }
+                }
+            }
+
+            ekran.Append(karakter);
+        }
+
+        ekran.Append(Environment.NewLine);
+    }
+
+    // Tek bir Write ile yazınca ekran titremez.
+    Console.SetCursorPosition(0, 0);
+    Console.Write(ekran.ToString());
+}</code></pre>
+          </div>
+
+          <div class="logic">
+            <h4>Mantığı</h4>
+            <ol>
+              <li><b>Önce bellekte kur, sonra bas.</b> Her hücre için ayrı <code>Console.Write</code> yapmak yerine tüm kareyi <code>StringBuilder</code>'da biriktiriyoruz. Tek yazma işlemi = tek yenileme = titremesiz görüntü.</li>
+              <li><b>İmleci başa al.</b> <code>SetCursorPosition(0, 0)</code> yeni kareyi eskisinin üzerine yazar; ekranı silmeye gerek kalmaz.</li>
+              <li><b>Karakter önceliği:</b> duvar → yem → yılan. Sırayı değiştirirsen yem duvarın altında kalır ya da yılan yemi örter.</li>
+              <li><b><code>(i == 0) ? Kafa : Govde</code></b> üçlü operatör: kafa için farklı, gövde için farklı karakter. Görsel ayrım tamamen buradan geliyor.</li>
+            </ol>
+          </div>
+
+          <div class="callout tip">
+            <span class="ico">◆</span>
+            <p><strong>İpucu:</strong> <code>Console.CursorVisible = false;</code> satırı imleci saklar. Yarım kalan bir kare bile görünmez olur; oyun anında daha profesyonel durur.</p>
+          </div>
+
+          <div class="task">
+            <input type="checkbox" id="t8" class="task-check" data-chapter="8">
+            <label for="t8"><b>Görev 10</b>Yem karakterini <code>$</code>, kafa karakterini <code>Ö</code> yap; <code>Console.ForegroundColor</code> ile yılana renk vermeyi dene.</label>
+          </div>
+        </div>
+      </article>
+
+      <!-- ============ BÖLÜM 9 ============ -->
+      <article class="chapter" id="bolum-9">
+        <div class="chapter-head">
+          <div class="chapter-num">09</div>
+          <div class="chapter-title-wrap">
+            <h3>Oyun sonu ve yeniden başlatma</h3>
+            <div class="chapter-meta"><span>~12 dakika</span><span class="tag">state machine</span><span>temiz çıkış</span></div>
+          </div>
+        </div>
+        <div class="chapter-body">
+          <p>
+            Oyun bitince programın kapanması kötü bir deneyim. Bir dış döngüyle "oyna → bitir →
+            yeniden başlat" akışını kuruyoruz. Durumu sıfırlayan tek bir fonksiyon olduğu için
+            yeniden başlatmak sadece onu çağırmak demek.
+          </p>
+
+          <div class="code-panel">
+            <div class="code-head"><span class="lang">C#</span><span class="file">Program.cs — Main()</span></div>
+            <pre><code class="language-csharp">static void Main()
+{
+    Console.OutputEncoding = Encoding.UTF8;
+    Console.CursorVisible = false;
+    Console.Title = "Yılan Oyunu - C#";
+
+    // Ctrl+C ile çıkıldığında imleci geri getir.
+    Console.CancelKeyPress += (gonderen, olay) =&gt;
+    {
+        Console.CursorVisible = true;
+        Console.ResetColor();
+    };
+
+    while (true)
+    {
+        OyunuBaslat();     // durumu sıfırla
+        OyunDongusu();     // oyunBitti olana kadar oyna
+        OyunBittiEkrani(); // skoru göster, tuş bekle
+    }
+}</code></pre>
+          </div>
+
+          <div class="code-panel">
+            <div class="code-head"><span class="lang">C#</span><span class="file">Program.cs — OyunuBaslat()</span></div>
+            <pre><code class="language-csharp">static void OyunuBaslat()
+{
+    Console.Clear();
+    yilan.Clear();
+
+    int ortaX = Genislik / 2;
+    int ortaY = Yukseklik / 2;
+
+    // Kafa listenin 0. elemanı. 3 parçalı başlıyoruz.
+    yilan.Add(new Konum(ortaX, ortaY));
+    yilan.Add(new Konum(ortaX - 1, ortaY));
+    yilan.Add(new Konum(ortaX - 2, ortaY));
+
+    yon = new Konum(1, 0);
+    bekleyenYon = yon;
+    skor = 0;
+    hiz = 8;
+    oyunBitti = false;
+
+    YemUret();
+    Ciz();
+}</code></pre>
+          </div>
+
+          <div class="logic">
+            <h4>Mantığı</h4>
+            <ol>
+              <li><b>Dış <code>while (true)</code> = oyun oturumu.</b> İçerideki döngü <code>oyunBitti</code> olunca biter; dış döngü hemen yeni bir oyun kurar. Bu yapıya <strong>durum makinesi</strong> (state machine) denir: oyna / bitir / bekle.</li>
+              <li><b>Yeniden başlatma = durumu sıfırlama.</b> Tüm değişkenler tek bir fonksiyonda başlangıç değerine dönüyor. "Yeni oyun"u başka yerde tekrar yazarsan bir gün bir değişkeni sıfırlamayı unutursun.</li>
+              <li><b>Yılan 3 parça doğar.</b> Kafa ortada, gövde sola doğru; yönü sağ olduğu için kendi üstüne doğmaz.</li>
+              <li><b>Temiz çıkış.</b> <code>Ctrl+C</code> programı öldürür ama imleci saklı bırakır. <code>CancelKeyPress</code> olayına bağlanarak çıkmadan önce imleci geri açıyoruz.</li>
+            </ol>
+          </div>
+
+          <div class="callout tip">
+            <span class="ico">◆</span>
+            <p><strong>İpucu:</strong> <code>enYuksekSkor</code> aynı oturumda korunuyor. Programı kapatınca kaybolmasını istemiyorsan bir sonraki adımda bunu dosyaya yazmayı deneyeceğiz.</p>
+          </div>
+
+          <div class="task">
+            <input type="checkbox" id="t9" class="task-check" data-chapter="9">
+            <label for="t9"><b>Görev 11</b>Oyun bittiğinde skoru <code>Console.Title</code>'a yazacak şekilde <code>OyunBittiEkrani()</code>'ni güncelle.</label>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ================= İNDİR ================= -->
+  <section id="indir">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Tam kod</span>
+        <h2>Hazır dosyaları indir, 30 saniyede çalıştır</h2>
+        <p>Aşağıdaki iki dosya birlikte çalışır. Aynı klasöre koy, terminalde <code>dotnet run</code> yaz. Hepsi bu.</p>
+      </div>
+
+      <div class="download-grid">
+        <a class="download-card" href="downloads/Snake.cs" download>
+          <span class="ext">CS</span>
+          <span><strong>Snake.cs</strong><span>oyunun tamamı · tek dosya</span></span>
+          <span class="arrow">⤓</span>
+        </a>
+        <a class="download-card" href="downloads/Snake.csproj" download>
+          <span class="ext">XML</span>
+          <span><strong>Snake.csproj</strong><span>proje tanımı · .NET 8</span></span>
+          <span class="arrow">⤓</span>
+        </a>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-head"><span class="lang">TERMINAL</span><span class="file">indirdiğin klasörde</span></div>
+        <pre><code class="language-bash">dotnet run          # derle ve oyna
+# ya da sadece derlemek için:
+dotnet build</code></pre>
+      </div>
+
+      <details class="full-code">
+        <summary>Tam kodu sayfada göster (280 satır)</summary>
+        <pre><code class="language-csharp" id="full-code">Kod yükleniyor…</code></pre>
+      </details>
+
+      <div class="callout tip" style="margin-top:22px">
+        <span class="ico">◆</span>
+        <p><strong>Not:</strong> Bu kod, Windows / macOS / Linux'ta çalışan <strong>.NET 8</strong> konsol uygulamasıdır. Oyun mantığı harici hiçbir paket kullanmaz; sadece standart kütüphane.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SÖZLÜK ================= -->
+  <section id="sozluk">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Sözlük</span>
+        <h2>Kafa karıştıran 12 terim</h2>
+        <p>Bu kelimeleri bilirsen geri kalan her şey daha anlaşılır olur.</p>
+      </div>
+      <dl class="glossary">
+        <div class="term"><dt>state (durum)</dt><dd>Oyunun "şu anki hâli": yılanın parçaları, yönü, skoru. Ekranda gördüğün her şey bu veriden üretilir.</dd></div>
+        <div class="term"><dt>game loop</dt><dd>Saniyede defalarca tekrarlanan döngü. Girdi → güncelleme → çizim sırasıyla çalışır.</dd></div>
+        <div class="term"><dt>grid (ızgara)</dt><dd>Oyun alanını oluşturan satır ve sütunlar. Her hücrenin bir X ve Y koordinatı vardır.</dd></div>
+        <div class="term"><dt>vektör</dt><dd>Yönü iki sayıyla anlatan çift: sağ <code>(1,0)</code>, yukarı <code>(0,-1)</code>.</dd></div>
+        <div class="term"><dt>çarpışma</dt><dd>İki nesnenin aynı hücreye denk gelmesi. Kontrol her zaman hareketi uygulamadan önce yapılır.</dd></div>
+        <div class="term"><dt>frame (kare)</dt><dd>Ekranın bir kez çizilmiş hâli. 8 adım/saniye = saniyede 8 kare.</dd></div>
+        <div class="term"><dt>tick</dt><dd>Döngünün bir turu. Yılan her tick'te tam bir hücre hareket eder.</dd></div>
+        <div class="term"><dt>buffer</dt><dd>Ekrana basmadan önce kareyi biriktirdiğin geçici alan. Titremeyi önler.</dd></div>
+        <div class="term"><dt>lambda</dt><dd><code>x =&gt; x &gt; 5</code> gibi kısa, isimsiz fonksiyon. <code>Exists</code> gibi metotlara şart vermek için kullanılır.</dd></div>
+        <div class="term"><dt>struct</dt><dd>Birkaç küçük değeri bir arada tutan hafif veri tipi. Koordinat için ideal.</dd></div>
+        <div class="term"><dt>refactor</dt><dd>Davranışı değiştirmeden kodu düzenlemek. Tekrar eden parçaları fonksiyona taşımak gibi.</dd></div>
+        <div class="term"><dt>delta time</dt><dd>İki güncelleme arasında geçen süre. Hız hesabını bu süreye göre yapınca oyun her bilgisayarda aynı hissi verir.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ================= SONRAKI ADIMLAR ================= -->
+  <section id="sonraki">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Devamı</span>
+        <h2>Bu oyunu nereye taşıyabilirsin?</h2>
+        <p>Aynı mantık, daha büyük araçlar. Yılan bittiğinde sırada bunlar var.</p>
+      </div>
+      <div class="next-grid">
+        <div class="next-item">
+          <h4>Cila <span class="tag">kolay</span></h4>
+          <p>Renkler, ses efektleri (<code>Console.Beep</code>), duraklatma tuşu, zorluk seçimi, en yüksek skoru dosyaya kaydetme.</p>
+        </div>
+        <div class="next-item">
+          <h4>Kod kalitesi <span class="tag">orta</span></h4>
+          <p>Her şeyi tek dosyadan çıkar: <code>Oyun</code>, <code>Yilan</code>, <code>Tahta</code> sınıfları. Test edilebilir, büyüyebilir bir yapı.</p>
+        </div>
+        <div class="next-item">
+          <h4>Grafik <span class="tag">orta</span></h4>
+          <p><strong>MonoGame</strong> veya <strong>SDL2</strong> ile aynı oyunu piksellerle çiz. Mantık birebir aynı kalır, sadece <code>Ciz()</code> değişir.</p>
+        </div>
+        <div class="next-item">
+          <h4>Oyun motoru <span class="tag">ileri</span></h4>
+          <p><strong>Unity</strong>: C# bilgin burada aynen geçerli. Update() döngüsü, GameObject ve collider kavramları tanıdık gelecek.</p>
+        </div>
+        <div class="next-item">
+          <h4>Web'e taşı <span class="tag">ileri</span></h4>
+          <p>Aynı kuralları tarayıcıda JavaScript/Canvas ile yaz. Bu sayfadaki laboratuvar tam olarak bunun küçük bir örneği.</p>
+        </div>
+        <div class="next-item">
+          <h4>Yeni bir oyun <span class="tag">ileri</span></h4>
+          <p>Breakout, Tetris, Mayın Tarlası… Hepsi aynı dört parçayla kurulur: ızgara, durum, döngü, kural.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>C# Oyun Atölyesi — öğrenmek için yazılmış, test edilmiş bir Yılan oyunu.</span>
+    <span class="mono">.NET 8 · Console · 280 satır</span>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
